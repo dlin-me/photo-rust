@@ -1,8 +1,8 @@
 mod command;
 mod utils;
 
-use std::path::Path;
 use clap::{App, Arg, SubCommand};
+use std::path::Path;
 
 fn main() {
     let matches = App::new("Photo-rust")
@@ -15,19 +15,21 @@ fn main() {
                 .default_value(".")
                 .help("Manage files in the given directory")
                 .takes_value(true),
-        ).arg(
-            Arg::with_name("DRYRUN")
-                .long("dryrun")
-                .help("Run file indexing in dry mode")
         )
         .subcommand(
-            SubCommand::with_name("index").about("Index files"),
+            SubCommand::with_name("index").about("Index files").arg(
+                Arg::with_name("FORCE")
+                    .short("f")
+                    .long("force")
+                    .help("Force re-indexing all files"),
+            ),
         )
         .get_matches();
 
     let directory = Path::new(matches.value_of("DIR").unwrap());
-    let dryrun =  matches.is_present("DRYRUN");
     if let Some(_) = matches.subcommand_matches("index") {
-        command::index::run(directory, dryrun);
+        let force = matches.is_present("FORCE");
+
+        command::index::run(directory, force);
     }
 }
