@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::path::Path;
 use walkdir::WalkDir;
 
-pub fn run(force: bool) {
+pub fn list_dups() {
     let path = Path::new(".");
     let mut db = utils::db::get_db(path);
     let file_count = WalkDir::new(path).into_iter().count();
@@ -29,10 +29,9 @@ pub fn run(force: bool) {
             {
                 let path = entry.path();
                 let path_str = path.to_str().unwrap();
-                let is_in_db = db.get::<utils::db::Hash>(path_str).is_some();
+                let is_in_db = db.get::<String>(path_str).is_some();
                 if !is_in_db || force {
-                    let md5 = utils::file::file_md5(path).unwrap();
-                    let hash = utils::db::Hash::new(md5);
+                    let hash = utils::file::file_md5(path).unwrap();
                     db.set(path_str, &hash).unwrap();
                 }
                 all_file_paths.insert(String::from(path_str));
