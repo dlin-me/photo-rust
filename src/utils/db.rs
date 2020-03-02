@@ -6,19 +6,20 @@ use std::time::Duration;
 use super::time::unix_secs;
 
 #[derive(Serialize, Deserialize)]
-pub struct Hash {
-    md5: String,
-    time: u64,
+pub struct FileHash {
+    pub md5: String,
+    pub time: u64,
 }
 
-impl Hash {
-    pub fn new(md5: String) -> Hash {
+impl FileHash {
+    pub fn new(md5: String) -> FileHash {
         let time = unix_secs();
-        Hash { md5, time }
+        FileHash { md5, time }
     }
 }
 
-pub fn get_db(path: &Path) -> PickleDb {
+pub fn get_db() -> PickleDb {
+    let path = Path::new(".");
     let db_path = path.join(".photo_rust_db");
 
     let loaded_result = PickleDb::load(

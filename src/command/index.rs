@@ -1,19 +1,17 @@
 use super::super::utils;
 use indicatif::ProgressBar;
 use std::collections::HashSet;
-use std::path::Path;
 use walkdir::WalkDir;
 
 pub fn run(force: bool) {
-    let path = Path::new(".");
-    let mut db = utils::db::get_db(path);
-    let file_count = WalkDir::new(path).into_iter().count();
+    let mut db = utils::db::get_db();
+    let file_count = WalkDir::new(".").into_iter().count();
     let mut all_file_paths = HashSet::new();
 
     if file_count > 0 {
-        println!("Indexing {} files in {:?}", file_count, path);
+        println!("Indexing {} files", file_count);
         let bar = ProgressBar::new(file_count as u64);
-        let paths = WalkDir::new(path)
+        let paths = WalkDir::new(".")
             .follow_links(true)
             .into_iter()
             .filter_map(|e| e.ok());
@@ -29,13 +27,15 @@ pub fn run(force: bool) {
             {
                 let path = entry.path();
                 let path_str = path.to_str().unwrap();
-                let is_in_db = db.get::<utils::db::Hash>(path_str).is_some();
+                let is_in_db = db.get::<utils::db::FileHash>(path_str).is_some();
                 if !is_in_db || force {
                     let md5 = utils::file::file_md5(path).unwrap();
-                    let hash = utils::db::Hash::new(md5);
+                    let hash = utils::db::FileHash::new(md5);
                     db.set(path_str, &hash).unwrap();
                 }
                 all_file_paths.insert(String::from(path_str));
+            } else {
+                continue;
             }
         }
         bar.finish();

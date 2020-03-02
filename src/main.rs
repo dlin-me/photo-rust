@@ -15,12 +15,17 @@ fn main() {
                     .short("f")
                     .long("force")
                     .help("Force re-indexing all files"),
-            ),
+            )
+        )
+        .subcommand(
+            SubCommand::with_name("list-dups").about("List duplicated files"),
         )
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("index") {
         let force = matches.is_present("FORCE");
         command::index::run(force);
-    }
+    } else if let Some(_) = matches.subcommand_matches("list-dups") {
+        command::list_dups::run();
+    } 
 }
