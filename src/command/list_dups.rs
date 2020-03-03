@@ -19,6 +19,42 @@ pub fn run() {
     }
 
     dup_map.retain(|_, v| v.len() > 1);
- 
-    println!("{:?}", dup_map);
+
+    for (_, dups) in &dup_map {
+        let mut first = None;
+        for (path, time) in dups {
+            first = match first {
+                None => Some((path, time)),
+                Some((_, t)) if t > time => Some((path, time)),
+                Some(_) => first,
+            };
+        }
+        let (first_path, _) = first.unwrap();
+        println!("{} ({})", shorten(first_path, 80), dups.len());
+
+        for (path, _) in dups {
+            println!("\t{}", shorten(path, 80));
+        }
+        println!("");
+    }
+}
+
+
+fn shorten(input: &String, max_len: usize) -> String{
+    if input.len() > max_len {
+        let diff = input.len() - max_len;
+        let to_remove = match diff {
+            x if x > 3 => x,
+            x if x <= 0 => 0,
+            _ => 3
+        };
+
+        let head = (input.len() - to_remove) / 2;
+        let tail = input.len()  - head - 3;
+        let res = format!("{}...{}", &input[..head], &input[tail..]);
+
+        return res;
+    }
+
+    return String::from(input);
 }
