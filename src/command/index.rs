@@ -1,7 +1,8 @@
 use super::super::utils;
 use indicatif::ProgressBar;
 use std::collections::HashSet;
-use walkdir::WalkDir;
+use std::path::MAIN_SEPARATOR;
+use walkdir::{DirEntry, WalkDir};
 
 pub fn run(force: bool) {
     let mut db = utils::db::get_db();
@@ -12,19 +13,12 @@ pub fn run(force: bool) {
         println!("Indexing {} files", file_count);
         let bar = ProgressBar::new(file_count as u64);
         let paths = WalkDir::new(".")
-            .follow_links(true)
+            .follow_links(false)
             .into_iter()
             .filter_map(|e| e.ok());
-
         for entry in paths {
             bar.inc(1);
-            if entry.file_type().is_file()
-                && !entry
-                    .file_name()
-                    .to_str()
-                    .map(|s| s.starts_with("."))
-                    .unwrap_or(false)
-            {
+            if is_indexible(&entry) {
                 let path = entry.path();
                 let path_str = path.to_str().unwrap();
                 let is_in_db = db.get::<utils::db::FileHash>(path_str).is_some();
@@ -34,8 +28,6 @@ pub fn run(force: bool) {
                     db.set(path_str, &hash).unwrap();
                 }
                 all_file_paths.insert(String::from(path_str));
-            } else {
-                continue;
             }
         }
         bar.finish();
@@ -51,7 +43,7 @@ pub fn run(force: bool) {
     }
 
     let absent_file_count = absent_file_paths.len();
-    if absent_file_count > 0 {        
+    if absent_file_count > 0 {
         let bar = ProgressBar::new(absent_file_count as u64);
 
         println!("Cleaning {} files in index", absent_file_count);
@@ -63,4 +55,15 @@ pub fn run(force: bool) {
         bar.finish();
     }
     println!("Done");
+}
+
+fn is_indexible(entry: &DirEntry) -> bool {
+    let is_hidden = entry
+        .path()
+        .to_str()
+        .map(|x| x.contains(&format!("{}{}", MAIN_SEPARATOR, ".")))
+        .unwrap_or(false);
+    let is_file = entry.file_type().is_file();
+
+    return is_file && !is_hidden;
 }
