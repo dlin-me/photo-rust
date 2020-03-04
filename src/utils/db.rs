@@ -18,8 +18,8 @@ impl FileHash {
     }
 }
 
-pub fn get_db() -> PickleDb {
-    let path = Path::new(".");
+pub fn get_db(target_path: &str) -> PickleDb {
+    let path = Path::new(target_path);
     let db_path = path.join(".photo_rust_db");
 
     let loaded_result = PickleDb::load(

@@ -1,18 +1,19 @@
+use colored::*;
 use super::super::utils;
 use indicatif::ProgressBar;
 use std::collections::HashSet;
 use std::path::MAIN_SEPARATOR;
 use walkdir::{DirEntry, WalkDir};
 
-pub fn run(force: bool) {
-    let mut db = utils::db::get_db();
-    let file_count = WalkDir::new(".").into_iter().count();
+pub fn run(target_dir: &str, force: bool) {
+    let mut db = utils::db::get_db(target_dir);
+    let file_count = WalkDir::new(target_dir).into_iter().count();
     let mut all_file_paths = HashSet::new();
 
     if file_count > 0 {
-        println!("Indexing {} files", file_count);
+        println!("{}", format!("Indexing {} files", file_count).blue().bold());
         let bar = ProgressBar::new(file_count as u64);
-        let paths = WalkDir::new(".")
+        let paths = WalkDir::new(target_dir)
             .follow_links(false)
             .into_iter()
             .filter_map(|e| e.ok());
@@ -46,7 +47,7 @@ pub fn run(force: bool) {
     if absent_file_count > 0 {
         let bar = ProgressBar::new(absent_file_count as u64);
 
-        println!("Cleaning {} files in index", absent_file_count);
+        println!("{}", format!("Cleaning {} files in index", absent_file_count).blue());
 
         for p in absent_file_paths {
             db.rem(&p).unwrap();
@@ -54,7 +55,7 @@ pub fn run(force: bool) {
         }
         bar.finish();
     }
-    println!("Done");
+    println!("{}", "Done".blue());
 }
 
 fn is_indexible(entry: &DirEntry) -> bool {

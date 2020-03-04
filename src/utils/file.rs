@@ -1,8 +1,8 @@
-use std::io;
-use std::path::Path;
-use std::io::prelude::*;
-use std::fs::File;
 use md5;
+use std::fs::{self, File};
+use std::io;
+use std::io::prelude::*;
+use std::path::Path;
 
 pub fn file_md5(path: &Path) -> io::Result<String> {
     let mut f = File::open(path)?;
@@ -12,4 +12,9 @@ pub fn file_md5(path: &Path) -> io::Result<String> {
     let hash = format!("{:x}", md5::compute(buffer));
 
     Ok(hash)
+}
+
+pub fn delete_file(path: &Path) -> std::io::Result<()> {
+    fs::remove_file(path)?;
+    Ok(())
 }
